@@ -1,0 +1,72 @@
+---
+title: "BLS Unemployment"
+author: "Daniel O'Leary"
+date: "4/30/2020"
+output: 
+  github_document:
+    toc: true
+---
+
+# Setup
+
+## Load Packages
+
+```{r}
+if (!require("pacman")) install.packages("pacman")
+
+pacman::p_load(
+  tidyverse, 
+  haven, 
+  broom, 
+  lavaan, 
+  semPlot, 
+  effects, 
+  mediation,
+  psych
+)
+
+```
+
+
+## Load data
+
+```{r}
+df_ue <-
+  read_csv("G:/My Drive/personal/cs_projects/python_projects/bls_unemployment_dl/BLS_county_employment.csv")
+```
+
+# Analaysis
+
+```{r}
+glimpse(df_ue)
+```
+
+```{r}
+df %>% 
+  group_by(year) %>% 
+  summarise(er = mean(Unemployment_Rate, na.rm = TRUE)) %>% 
+  ggplot(aes(year, er)) +
+  geom_line()
+```
+
+```{r}
+ue_0810 <-
+  df_ue %>%  
+  filter(year == 2010) %>%
+  group_by(FIPS) %>% 
+  summarise(uer_10 = median(Unemployment_Rate, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  dplyr::select(FIPS, uer_10) %>% 
+  left_join(
+    df_ue %>%  
+      filter(year == 2008) %>%
+      group_by(FIPS) %>% 
+      summarise(uer_08 = median(Unemployment_Rate, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      dplyr::select(FIPS, uer_08),
+    by = "FIPS"
+  )
+```
+
+
+
